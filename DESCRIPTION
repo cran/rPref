@@ -1,0 +1,20 @@
+Package: rPref
+Version: 0.1
+Date: 2014-08-01
+Title: Preferences and Skyline Computation in R
+Author: Patrick Roocks <mail@p-roocks.de>
+Maintainer: Patrick Roocks <mail@p-roocks.de>
+Description: Implementing Preferences in R to retrieve Maxima for a given
+    strict partial order. This also includes the Skyline Operator, which allows
+    to retrieve the pareto-optimal values.
+URL: http://www.p-roocks.de/rpref
+Depends: R (>= 3.0.0), methods
+Imports: Rcpp, dplyr, igraph
+License: GPL (>= 2)
+LazyData: true
+LinkingTo: Rcpp
+Suggests: testthat
+Packaged: 2014-08-04 14:17:24 UTC; Patrick Roocks
+NeedsCompilation: yes
+Repository: CRAN
+Date/Publication: 2014-08-04 16:48:39
