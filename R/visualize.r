@@ -1,3 +1,5 @@
+
+
 #' Better-Than-Graph
 #' 
 #' Returns a Hasse-Diagramm of a preference order (also called the Better-Than-Graph) on a given dataset to be plotted with the igraph package.
@@ -12,11 +14,11 @@
 #'   \item{\code{l$layout}}{A typical Hasse-diagram layout for plotting the graph, also created with igraph.}
 #' }
 #' 
-#' To plot the resulting graph, use the \code{plot} function as follows: \code{plot(l$graph, layout = l$layout)}. 
-#' For more details, see \code{\link{igraph.plotting}} and the examples below.
+#' To plot the resulting graph use the \code{plot} function as follows: \code{plot(l$graph, layout = l$layout)}. 
+#' For more details see \code{\link{igraph.plotting}} and the examples below.
 #' 
 #' The Hasse diagram of a preference visualizes all the better-than-relationsships on a given dataset.
-#' All the edges which can be retrieved by transitivity of the the order are omitted.
+#' All edges which can be retrieved by transitivity of the order are omitted.
 #' 
 #' The names of the vertices are characters ranging from \code{"1"} to \code{as.character(nrow(df))} and they correspond to the row numbers of \code{df}.
 #' 
@@ -24,7 +26,7 @@
 #' 
 #' @examples
 #' 
-#' # Pick a small data set and create preference / BTG 
+#' # Pick a small data set and create preference/BTG 
 #' df <- mtcars[1:10,]
 #' pref <- high(mpg) * high(hp)
 #' btg <- get_btg(df, pref)
@@ -78,3 +80,101 @@ get_btg <- function(df, pref) {
 }
 
 
+
+#' Pareto Front Plot
+#' 
+#' Connects the points of a Pareto front (also known as Pareto frontier) and hence visualizes the dominance region of a Skyline.
+#' 
+#' @param df The dataframe for which the Pareto front is plotted. This may be already a maxima set w.r.t. the preference \code{pref}, 
+#'           but anyway the maxima set is recalculated via \code{psel(df, pref)}.
+#' @param pref The preference representing the Skyline goals. This must be a pareto (\code{p1 * p2}) or intersection (\code{p1 | p2}) composition of 
+#'             two \code{\link{low}} or \code{\link{high}} preferences.
+#' @param ... Additional graphic parameters which are passed to the \code{\link{segments}} function (internally used to plot the front).
+#'             
+#' @details
+#'             
+#' \code{plot_front} assumes that there is an existing plot, where the value of the first preference was plotted as x-coordinate
+#' and the value of the second preference as y-coordinate.
+#' 
+#' @examples
+#' 
+#' # Plots Pareto fronts for the hp/mpg values of mtcars
+#' show_front <- function(pref) {
+#'   plot(mtcars$hp, mtcars$mpg)
+#'   sky <- psel(mtcars, pref)
+#'   plot_front(mtcars, pref, col = rgb(0,0,1))
+#'   points(sky$hp, sky$mpg, lwd = 3)
+#' }
+#'
+#' # Do this for all four combinations of pareto compositions
+#' show_front(low(hp)  * low(mpg))
+#' show_front(low(hp)  * high(mpg))
+#' show_front(high(hp) * low(mpg))
+#' show_front(high(hp) * high(mpg))
+#' 
+#' # Compare this to the front of a intersection preference
+#' show_front(high(hp) | high(mpg))
+#' 
+#' @export
+plot_front <- function(df, pref, ...) {
+  
+  # Check if appropiate preference
+  if (!(   is.complexpref(pref) && (pref$op == '*' || pref$op == '|')
+        && (is.lowpref(pref$p1) || is.highpref(pref$p1))
+        && (is.lowpref(pref$p2) || is.highpref(pref$p2))  ))
+    stop("The plot_front function can only be applied to a 2-dimensional pareto preference of low/high preferences!")
+    
+  
+  maxima <- psel(df, pref)
+  
+  # Get evaluated expressions (similar to score values, but for "high" we have to negate)
+  scores <- pref$get_scorevals(1, maxima)$scores
+  if (is.highpref(pref$p1)) scores[,1] <- -scores[,1]
+  if (is.highpref(pref$p2)) scores[,2] <- -scores[,2]
+  
+  # Get bounding box of current plot
+  xmin <- par("usr")[1]
+  xmax <- par("usr")[2]
+  ymin <- par("usr")[3]
+  ymax <- par("usr")[4]
+  
+  if (is.highpref(pref$p1) && is.highpref(pref$p2)) {
+    
+    # Sort by x in ascending order and y in descending order
+    scores <- scores[order(scores[,1], -scores[,2]),]
+    
+    # Plot segments
+    segments(c(xmin, scores[-nrow(scores),1]), scores[,2], scores[,1], scores[,2], ...)
+    segments(scores[,1], scores[,2], scores[,1], c(scores[-1,2], ymin), ...)
+    
+  } else if (is.lowpref(pref$p1) && is.lowpref(pref$p2)) {
+    
+    # Sort by x in ascending order and y in descending order
+    scores <- scores[order(scores[,1], -scores[,2]),]
+    
+    # Plot segments
+    segments(scores[,1], scores[,2], c(scores[-1,1], xmax), scores[,2], ...)
+    segments(scores[,1], c(ymax, scores[-nrow(scores),2]), scores[,1], scores[,2], ...)
+  
+  } else if (is.lowpref(pref$p1) && is.highpref(pref$p2)) {
+    
+    # Sort by x in ascending order and y in descending order
+    scores <- scores[order(scores[,1], scores[,2]),]
+    
+    # Plot segments
+    segments(scores[,1], scores[,2], c(scores[-1,1], xmax), scores[,2], ...)
+    segments(scores[,1], c(ymin, scores[-nrow(scores),2]), scores[,1], scores[,2], ...)
+  
+  } else if (is.highpref(pref$p1) && is.lowpref(pref$p2)) {
+    
+    # Sort by x in ascending order and y in ascending order
+    scores <- scores[order(scores[,1], scores[,2]),]
+    
+    # Plot segments
+    segments(c(xmin, scores[-nrow(scores),1]), scores[,2], scores[,1], scores[,2], ...)
+    segments(scores[,1], c(scores[-1,2], ymax), scores[,1], scores[,2], ...)
+    
+  }  
+}
+  
+  

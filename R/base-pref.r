@@ -4,13 +4,13 @@
 #' 
 #'
 #' @name base_pref
-#' @param expr Value which is the term for the current preference and should be minimized/maximized or, for boolean preferences, \code{TRUE}. 
-#' The term \code{expr} can be just a single attribute an arbitrary expression, e.g., 
-#' \code{low(a+2*b+f(c))}, where \code{a}, \code{b} and \code{c} are columns of the addressed dataset and \code{f} is a previously defined function.
+#' @param expr A numerical/logical expression which is the term for the current preference. 
+#'       The objective is to search for minimal/maximal values of this expression (for \code{low}/\code{high}) or for 
+#'       logical true values (for \code{true}). 
 #' 
 #' @details
 #' 
-#' All base preferences are mathematically strict weak orders (irreflexive, transitive and negative transitive).
+#' Mathematically, all base preferences are strict weak orders (irreflexive, transitive and negative transitive).
 #' 
 #' The three fundamental base preferences are:
 #' 
@@ -18,16 +18,21 @@
 #'   \item{\code{low(a), high(a)}}{Search for minimal/maximal values of \code{a}, 
 #'         i.e., the induced order is the "smaller than" or "greater than" order on the values of \code{a}.
 #'         The values of \code{a} must be numeric values.}
-#'   \item{\code{true(a)}}{Search for true values in logical expressions, i.e. \code{TRUE} is better than \code{FALSE}.
+#'   \item{\code{true(a)}}{Search for true values in logical expressions, i.e., \code{TRUE} is considered to be better than \code{FALSE}.
 #'         The values of \code{a} must be logical values.}
 #' }
 #' 
+#' 
+#' The term \code{expr} can be just a single attribute or an arbitrary expression, e.g., \code{low(a+2*b+f(c))}.
+#' There \code{a}, \code{b} and \code{c} are columns of the addressed dataset and \code{f} is a previously defined function.
+#' 
 #' Functions contained in \code{expr} are evaluated over the entire dataset, i.e., 
 #' it is possible to use aggregate functions (\code{min}, \code{mean}, etc.). 
-#' Note that all functions (and also variables not occuring in the dataset, where \code{pref} will be evaluated on)
-#' must be defined in the same environment (e.g. function scope) as the base preference.
+#' Note that all functions (and also variables which are not columns of the dataset, where \code{expr} will be evaluated on)
+#' must be defined in the same environment (e.g. environment of a function) as the base preference.
 #' 
 #' @seealso See \code{\link{complex_pref}} how to compose complex preferences to retrieve e.g. the Skyline.
+#' 
 #' See \code{\link{base_pref_macros}} for more base preferences.
 #' 
 #' @examples

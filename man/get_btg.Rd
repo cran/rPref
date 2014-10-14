@@ -21,16 +21,16 @@ This function returns a list \code{l} with the following list entries:
   \item{\code{l$layout}}{A typical Hasse-diagram layout for plotting the graph, also created with igraph.}
 }
 
-To plot the resulting graph, use the \code{plot} function as follows: \code{plot(l$graph, layout = l$layout)}.
-For more details, see \code{\link{igraph.plotting}} and the examples below.
+To plot the resulting graph use the \code{plot} function as follows: \code{plot(l$graph, layout = l$layout)}.
+For more details see \code{\link{igraph.plotting}} and the examples below.
 
 The Hasse diagram of a preference visualizes all the better-than-relationsships on a given dataset.
-All the edges which can be retrieved by transitivity of the the order are omitted.
+All edges which can be retrieved by transitivity of the order are omitted.
 
 The names of the vertices are characters ranging from \code{"1"} to \code{as.character(nrow(df))} and they correspond to the row numbers of \code{df}.
 }
 \examples{
-# Pick a small data set and create preference / BTG
+# Pick a small data set and create preference/BTG
 df <- mtcars[1:10,]
 pref <- high(mpg) * high(hp)
 btg <- get_btg(df, pref)

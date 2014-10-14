@@ -16,17 +16,20 @@ pos(expr, pos_value)
 layered(expr, ...)
 }
 \arguments{
-\item{expr}{The value which should be in the preferred interval, layer, etc. The same requirements as for \code{\link{base_pref}} apply.}
+\item{expr}{A numerical expression (for \code{around} and \code{between}) or an arbitrary expression (for \code{pos} and \code{layered}).
+We search for value where \code{expr} evaluates to a value in the preferred interval, layer, etc.
+Regarding attributes, functions and variables, the same requirements as for \code{\link{base_pref}} apply.}
 
-\item{center}{Preferred value, where a values from the given \code{expr} should be near by.}
+\item{center}{Preferred value for \code{around}.}
 
-\item{left}{Lower limit for a preferred interval.}
+\item{left}{Lower limit of the preferred interval for \code{between}.}
 
-\item{right}{Upper limit for a preferred interval.}
+\item{right}{Upper limit of the preferred interval for \code{between}.}
 
-\item{pos_value}{The preferred value or set for a pos-preference.}
+\item{pos_value}{A vector containing the preferred values for a \code{pos} preference.
+Has to be of the same type (numeric, logical, character, ...) as \code{expr}.}
 
-\item{...}{Layers (sets) for a layered-Preference, where the first set are the most preferred values.}
+\item{...}{Layers (sets) for a \code{layered} preference, where the first set are the most preferred values.}
 }
 \description{
 In addition to the fundamental base preferences, rPref offers some macros to define preferences where a given interval or point is preferred.
@@ -35,14 +38,14 @@ In addition to the fundamental base preferences, rPref offers some macros to def
 
 
 \describe{
-  \item{\code{between(expr, left, right)}}{Those tuples are preferred, where \code{expr} evaluates to a value between l and r.
-  For values not in this interval, the values nearest to [l, r] are preferred.}
+  \item{\code{between(expr, left, right)}}{Those tuples are preferred where \code{expr} evaluates to a value between \code{left} and \code{right}.
+  For values not in this interval the values nearest to the interval are preferred.}
   \item{\code{around(expr, center)}}{Same as \code{between(expr, center, center)}.}
-  \item{\code{pos(expr, pos_value)}}{If \code{expr} evaluates to a value which is contained in \code{pos_value}, these tuples are preferred.}
-  \item{\code{layered(expr, layer1, layer2, ..., layerN)}}{For the most preferred tuples, \code{expr} must evaluate to a value in \code{layer1}.
-  The second-best tuples are those, where \code{expr} evaluates to a value in \code{layer2}, and so forth.
-  Values occuring in non of the layers are considered worse than those in \code{layerN}.
-  Technically, this is realized by a Prioritization (lexicographical order) chain of boolean preferences.}
+  \item{\code{pos(expr, pos_value)}}{Those tuples are preferred, where \code{expr} evaluates to a value which is contained in \code{pos_value}.}
+  \item{\code{layered(expr, layer1, layer2, ..., layerN)}}{For the most preferred tuples \code{expr} must evaluate to a value in \code{layer1}.
+  The second-best tuples are those where \code{expr} evaluates to a value in \code{layer2} and so forth.
+  Values occuring in none of the layers are considered worse than those in \code{layerN}.
+  Technically, this is realized by a Prioritization (lexicographical order) chain of \code{\link{true}} preferences.}
 }
 }
 \examples{

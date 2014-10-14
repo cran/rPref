@@ -33,8 +33,15 @@ basepref <- setRefClass("basepref",
     },
     
     get_scorevals = function(next_id, df) {
-      .self$score_id = next_id                              
-      return(list(next_id = next_id+1, scores = as.data.frame(.self$calc_scores(df, .self$eval_frame))))
+      .self$score_id = next_id
+      # Calc score of base preference
+      scores <- .self$calc_scores(df, .self$eval_frame)
+      # Check if length ok
+      if (length(scores) != nrow(df)) {
+        if (length(scores) == 1) scores <- rep(scores, nrow(df))
+        else stop(paste0("Evaluation of base preferences ", .self$get_str(), " does not have the same length as the dataset!"))
+      }
+      return(list(next_id = next_id+1, scores = as.data.frame(scores)))
     },
     
     cmp = function(i, j, score_df) { # TRUE if i is better than j
@@ -65,7 +72,7 @@ lowpref <- setRefClass("lowpref",
     calc_scores = function(df, frm) {
       res = eval(.self$expr, df, frm)
       if (!is.numeric(res)) stop("For a low preference the expression must be numeric!")
-      return(res)
+      return(res)        
     }
   )
 )

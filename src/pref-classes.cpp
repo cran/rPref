@@ -5,83 +5,47 @@ using namespace Rcpp;
 
 // --------------------------------------------------------------------------------------------------------------------------------
 
-// Preferences classes and de-serzialization of prefs
+// Preferences classes methods and de-serzialization of prefs
 
-class scorepref : public pref {
-public:
+bool scorepref::cmp(int i, int j) {
+  return(data[i] < data[j]);
+}
 
-  NumericVector data;
-  
-  bool cmp(int i, int j) {
-    return(data[i] < data[j]);
-  }
-  
-  bool eq(int i, int j) {
-    return(data[i] == data[j]);
-  }
-};
+bool scorepref::eq(int i, int j) {
+	return(data[i] == data[j]);
+}
 
+bool reversepref::cmp(int i, int j) {
+	return(p->cmp(j, i));
+}
 
-class reversepref : public pref {
-public:
+bool reversepref::eq(int i, int j) {
+	return(p->eq(i, j));
+}
 
-  pref *p;
-  
-  bool cmp(int i, int j) {
-    return(p->cmp(j,i));
-  }
-  
-  bool eq(int i, int j) {
-    return(p->eq(i,j));
-  }
-};
+bool complexpref::eq(int i, int j) {
+	return(p1->eq(i, j) && p2->eq(i, j));
+}
 
 
-class complexpref : public pref {
-public:
-
-  pref *p1;
-  pref *p2;
-  
-  bool eq(int i, int j) {
-    return(p1->eq(i,j) && p2->eq(i,j));
-  }  
-};
+bool prior::cmp(int i, int j) {
+	return(p1->cmp(i, j) || (p1->eq(i, j) && p2->cmp(i, j)));
+}
 
 
-class prior : public complexpref {  
-public:
+bool pareto::cmp(int i, int j) {
+	return((p1->cmp(i, j) && (p2->cmp(i, j) || p2->eq(i, j))) ||
+		(p2->cmp(i, j) && (p1->cmp(i, j) || p1->eq(i, j))));
+}
 
-  bool cmp(int i, int j) {
-    return( p1->cmp(i,j) || ( p1->eq(i,j) && p2->cmp(i,j) ) );
-  }
-};
+bool intersectionpref::cmp(int i, int j) {
+	return(p1->cmp(i, j) && p2->cmp(i, j));
+}
 
 
-class pareto : public complexpref {
-public:
-  
-  bool cmp(int i, int j) {
-    return( ( p1->cmp(i,j) && (p2->cmp(i,j) || p2->eq(i,j)) ) || 
-            ( p2->cmp(i,j) && (p1->cmp(i,j) || p1->eq(i,j)) )     );
-  }
-};
-
-class intersectionpref : public complexpref {
-public:
-  
-  bool cmp(int i, int j) {
-    return( p1->cmp(i,j) && p2->cmp(i,j) );
-  }
-};
-
-class unionpref : public complexpref {
-public:
-  
-  bool cmp(int i, int j) {
-    return( p1->cmp(i,j) || p2->cmp(i,j) );
-  }
-};
+bool unionpref::cmp(int i, int j) {
+	return(p1->cmp(i, j) || p2->cmp(i, j));
+}
 
 
 // --------------------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,16 @@
-rPref 0.1
+rPref 0.2
 =========
 
-* first version of the rPref package
+October 14, 2014
+
+* Compatibility with dplyr 0.3
+
+* Parallel calculation of preferences with RCppParallel
+
+* New algorithm for faster computation of Pareto preferences
+
+* New functionality for Top-K selection: Top-Level-K, at_least and level value
+
+* New visualization function `plot_front` to plot the pareto frontier
+
+* `?rPref` shows a summary of all functions

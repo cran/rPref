@@ -2,17 +2,18 @@
 #' Complex preferences
 #' 
 #' Complex preferences are used to compose different preferences orders. For example the Pareto composition (via operator \code{*}) is the usual operator
-#' to compose the preference for a Skyline query. All complex preferences are mathematically strict partial orders (irreflexive and transitive).
+#' to compose the preference for a Skyline query. The Skyline is also known as Pareto frontier.
+#' All complex preferences are mathematically strict partial orders (irreflexive and transitive).
 #' 
 #' @name complex_pref
 #' @param p1,p2 Preferences to be composed (either base preferences via \code{\link{base_pref}} or also complex preferences)
 #' 
 #' @section Skylines:
 #' 
-#' The most important preference composition operator is the Pareto-Operator (\code{p1 * p2}) to formulate a Skyline query. 
+#' The most important preference composition operator is the Pareto operator (\code{p1 * p2}) to formulate a Skyline query. 
 #' A tuple t1 is better than t2 w.r.t. \code{p1 * p2} if it is strictly better w.r.t. one of the preferences p1, p2 and is better or equal w.r.t. the other preference.
 #' 
-#' The syntactical translation from other query languages to rPref is as follows:
+#' The syntactical translation from other query languages supporting skylines/Preferences to rPref is as follows:
 #' 
 #' \itemize{
 #' \item A query in the syntax from Borzsonyi et. al (2001) like
@@ -21,16 +22,26 @@
 #' 
 #' corresponds in rPref to the preference
 #' 
-#' \code{low(a) * high(b) * low(c)}.
+#' \code{high(a) * low(b) * high(c)}.
 #' 
 #' 
 #' \item A query in the syntax from Kiessling (2002) like 
 #' 
-#' "\code{... PREFERRING a LOWEST and (b HIGHEST PRIOR TO c LOWEST)}" 
+#' "\code{... PREFERRING a LOWEST AND (b HIGHEST PRIOR TO c LOWEST)}" 
 #' 
 #' corresponds in rPref to 
 #' 
 #' \code{low(a) * (high(b) & low(c))}.
+#' 
+#' 
+#' \item A query in the syntax of the "Skyline" feature of the commercial database "EXASolution 5" like 
+#' 
+#' "\code{... PREFERRING LOW a PLUS (b = 1 PRIOR TO LOW c))}" 
+#' 
+#' corresponds in rPref to
+#' 
+#' \code{low(a) * (true(b == 1) & low(c))}.
+#' 
 #' }
 #' 
 #' @section Definition of additional preference operators:
@@ -38,24 +49,28 @@
 #' Additionally, rPref supports the following preference composition operators:
 #' 
 #' \describe{
-#'  \item{\code{p1 & p2}}{Prioritization (Lexicographical order): A tuple t1 is better than t2 w.r.t. \code{p1 & p2} if it is 
-#'   strictly better w.r.t. \code{p1} or is euqal w.r.t. \code{p1} and is better w.r.t. \code{p2}.}
-#'  \item{\code{p1 | p2}}{Intersection preference: A tuple t1 is better than t2 w.r.t. \code{p1 | p2} if it is strictly better w.r.t. both preferences.}
+#'  \item{\code{p1 & p2}}{Prioritization (lexicographical order): A tuple t1 is better than t2 w.r.t. \code{p1 & p2} if it is 
+#'   strictly better w.r.t. \code{p1} or is equal w.r.t. \code{p1} and is better w.r.t. \code{p2}.}
+#'  \item{\code{p1 | p2}}{Intersection preference: A tuple t1 is better than t2 w.r.t. \code{p1 | p2} if it is strictly better w.r.t. both preferences. 
+#'        This is a stricter variant of the Pareto operator. The evaluation of \code{psel(df, p1 | p2)} is always a subset of \code{psel(df, p1 * p2)}.}
 #'  \item{\code{p1 + p2}}{Union preference: A tuple t1 is better than t2 w.r.t. \code{p1 + p2} if it is strictly better w.r.t. to one of the preferences. 
 #'  Note that this can violate the strict partial order property, if the domains (the tuples on which \code{p1} and \code{p2} define better-than-relationships) 
 #'  of the preferences are not disjoint.}
 #'  \item{\code{reverse(p1)} or \code{-p1}}{Reverse preference (converse relation): 
 #'  A tuple t1 is better than t2 w.r.t. \code{-p1} if t2 is better than t1 w.r.t. \code{p1}. 
-#'  The unary minus operator, i.e. \code{-p1}, is a short for \code{reverse(p1)}}.
+#'  The unary minus operator, i.e. \code{-p1}, is a short notation for \code{reverse(p1)}}.
 #' }
+#' 
 #'
-#' @seealso See \code{\link{base_pref}} for the construction of base preferences. See \code{\link{psel}} for the evaluation of preferences.
+#' @seealso See \code{\link{base_pref}} for the construction of base preferences. See \code{\link{psel}} for the evaluation of preferences. 
 #' 
 #' @keywords skyline
 #' 
-#' @references W. Kiessling (2002): Foundations of Preferences in Database Systems. In Very Large Data Bases (VLDB '02), pages 311-322.
+#' @references 
 #' 
 #' S. Borzsonyi, D. Kossmann, K. Stocker (2001): The Skyline Operator. In Data Engineering (ICDE '01), pages 421-430.
+#' 
+#' W. Kiessling (2002): Foundations of Preferences in Database Systems. In Very Large Data Bases (VLDB '02), pages 311-322.
 #' 
 #' @examples
 #' # Define preference for cars with low consumption (high mpg-value) 
