@@ -102,10 +102,13 @@ DataFrame pref_select_top_impl(DataFrame scores, List serial_pref, int N, double
   NumericVector col1 = scores[0];  
   int ntuples = col1.size();
   
+  if (ntuples == 0) return(DataFrame::create(Named(".indices") = NumericVector(),
+                                             Named(".level")   = NumericVector()));
+  
   topk_setting ts(top, at_least, toplevel, and_connected);
   
   // De-Serialize preference
-  pref* p = CreatePreference(serial_pref, scores, 0);
+  pref* p = CreatePreference(serial_pref, scores);  
   
   // Result list
   flex_list res;
@@ -159,8 +162,10 @@ DataFrame pref_select_top_impl(DataFrame scores, List serial_pref, int N, double
     // Merge and execute top k Scalagon/BNL again, potentially WITH LEVELS
     std::vector<int> vec_merged(list_merged.begin(), list_merged.end());
     res = scal_alg.run_scalagon_topk(vec_merged, p, ts, alpha, show_levels); // res is flex_list
-  
   }
+  
+  // Delete preference
+  delete p;
   
   if (!show_levels) {
     // Return just indices (first member of flex_list)
@@ -180,6 +185,7 @@ DataFrame pref_select_top_impl(DataFrame scores, List serial_pref, int N, double
     return(DataFrame::create(Named(".indices") = ind,
                              Named(".level")   = levels));
   }
+  // Preference was deleted before if block
 }
 
 
@@ -200,9 +206,12 @@ DataFrame grouped_pref_sel_top_impl(DataFrame data, DataFrame scores, List seria
   List indices = data.attr("indices"); // Group indices
   int nind = indices.length();
   
+  if (nind == 0) return(DataFrame::create(Named(".indices") = NumericVector(),
+                                          Named(".level")   = NumericVector()));
+  
   topk_setting ts(top, at_least, toplevel, and_connected);
   
-  pref* p = CreatePreference(serial_pref, scores, 0);
+  pref* p = CreatePreference(serial_pref, scores);
   
   scalagon scal_alg;
   
@@ -213,6 +222,8 @@ DataFrame grouped_pref_sel_top_impl(DataFrame data, DataFrame scores, List seria
     for (int i = 0; i < nind; i++) 
       vs[i] = as< std::vector<int> >(indices[i]);
   }
+  
+  DataFrame result_df;
 
   if (!show_levels) {
     
@@ -241,7 +252,7 @@ DataFrame grouped_pref_sel_top_impl(DataFrame data, DataFrame scores, List seria
       }
     }
     
-    return(DataFrame::create(Named(".indices") = NumericVector(res.begin(), res.end())));
+    result_df = DataFrame::create(Named(".indices") = NumericVector(res.begin(), res.end()));
     
   } else {
     
@@ -281,9 +292,15 @@ DataFrame grouped_pref_sel_top_impl(DataFrame data, DataFrame scores, List seria
       count++;
 		}
 
-    return(DataFrame::create(Named(".indices") = ind,
-                             Named(".level")   = levels));
+    result_df = DataFrame::create(Named(".indices") = ind,
+                                  Named(".level")   = levels);
   }
+    
+  // Delete preference
+  delete p;
+  
+  // Return result
+  return(result_df);
 }
 
 

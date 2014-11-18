@@ -26,7 +26,7 @@ private:
 	int m_dim; // Number of dimensions
 
 	// All pareto / product order preferences
-	std::vector<scorepref*> prefs;
+	std::vector<scorepref*> m_prefs;
 
 	// convert preferences from tree into vector
 	bool get_prefs(pref* p);

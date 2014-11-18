@@ -35,7 +35,8 @@ scalagon::scalagon() {}
 scalagon::~scalagon() {}
 
 
-// Put all pareto preferences of a tree into a vector
+// Put all pareto/intersection preferences of a tree into a vector
+// Returns true if successful, false if not (found non-productpref), results are in m_prefs
 bool scalagon::get_prefs(pref* p) {
 
   // Try to cast to productpref (pareto or intersection)
@@ -44,7 +45,7 @@ bool scalagon::get_prefs(pref* p) {
 		// Now we assume a scorepref
 		scorepref *spref = dynamic_cast<scorepref*>(p);
 		if (spref != 0) {
-			prefs.push_back(spref);
+			m_prefs.push_back(spref);
 			return(true);
 		} else return(false); // no score preference => not purely pareto/intersection!
 	} else {
@@ -60,7 +61,7 @@ std::list<int> scalagon::run_scalagon(std::vector<int>& v, pref* p, double alpha
 
 		// *** Domination phase
 		std::vector<int> v_empty; // Create empty vector to allow reference
-		dominate(v_empty, p); // empty vecor - no index needed
+		dominate(v_empty, p); // empty vecor - no index needed for non-topk scalagon
 
 		// **** Filtering: Add all not dominated tuples to filtered result (outliers are already in, done by init!)
 		int scount = m_stuples_v.size();
@@ -69,7 +70,6 @@ std::list<int> scalagon::run_scalagon(std::vector<int>& v, pref* p, double alpha
 			if (!m_btg[btg_ind]) {
 				m_filt_res[m_filt_count] = v[m_stuples_v[i]];
 				m_filt_count++;
-
 			}
 		}
 
@@ -216,6 +216,7 @@ inline int scalagon::get_index_pt(std::vector<int> &pt) {
 	return(res);
 }
 
+// Calculate the scale vector for a given domain size and btg size
 std::vector<int> scalagon::iterated_scaling(std::vector<int>& domain_size, const double btg_size) {
 
 	std::vector<bool> reached_domain_limit;
@@ -286,16 +287,16 @@ bool scalagon::scalagon_init(std::vector<int>& v, pref* p, double alpha) {
 	// **** Get preferences / priliminary checks
 
 	if (alpha <= 0) return(false); // reject alpha=-1, alpha=0
-	prefs.clear(); // clear preference list
+	m_prefs.clear(); // clear preference list
 	// Get preferences, check if all pareto and at least two preferences
-	if (!get_prefs(p) || prefs.size() < 2) return(false);
+	if (!get_prefs(p) || m_prefs.size() < 2) return(false);
 
 
 	// **** Precalculations for Scalagon
 
 	int ntuples = v.size();
 	if (ntuples < 10 * sample_size) return(false); // not enough tuples, DO NOT USE Scalagon, use BNL
-	m_dim = prefs.size();
+	m_dim = m_prefs.size();
 
 	// lower and upper bounds for the "center" where most tuples are expected
 	std::vector<double> upper_bound(m_dim);
@@ -319,7 +320,7 @@ bool scalagon::scalagon_init(std::vector<int>& v, pref* p, double alpha) {
 
 		// Pick sample
 		for (int i = 0; i < sample_size; i++) {
-			double val = prefs[k]->data[v[sample_ind[i]]];
+			double val = m_prefs[k]->data[v[sample_ind[i]]];
 			sample[i] = val;
 			sample_set.insert(val);
 		}
@@ -368,7 +369,7 @@ bool scalagon::scalagon_init(std::vector<int>& v, pref* p, double alpha) {
 	for (int i = 0; i < ntuples; i++) {
 		m_stuples_v[scount] = i; // v-index of scaled variable (will be overwritten if scount not incremented)
 		for (int k = 0;; k++) {
-			int val = (int)std::floor(fct[k] * (prefs[k]->data[v[i]] - lower_bound[k]));
+			int val = (int)std::floor(fct[k] * (m_prefs[k]->data[v[i]] - lower_bound[k]));
 			if (val < 0 || val >= m_scale_fct[k]) {
 				m_filt_res[m_filt_count] = v[i];
 				m_filt_count++;

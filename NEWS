@@ -1,16 +1,16 @@
-rPref 0.2
+rPref 0.3
 =========
 
-October 14, 2014
+* Translation of preferences to other preference query languages via `show.query`
 
-* Compatibility with dplyr 0.3
+* Optimized evaluation of preferences with long prioritization chains
 
-* Parallel calculation of preferences with RCppParallel
+* Added neutral element `empty()` for preference composition
 
-* New algorithm for faster computation of Pareto preferences
+* Fixed memory leak in preference evaulation
 
-* New functionality for Top-K selection: Top-Level-K, at_least and level value
+* Fixed bug: wrong Hasse diagramms for some kinds of preferences in get_btg
 
-* New visualization function `plot_front` to plot the pareto frontier
+* Fixed bug: `psel` failed on empty dataframes
 
-* `?rPref` shows a summary of all functions
+* Hasse diagramm can be returned as adjacency list via `get_hasse_diag`

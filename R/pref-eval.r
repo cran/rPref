@@ -17,7 +17,8 @@
 #'      \code{at_least}. In contrast to top-k, this is deterministic.}
 #'     \item{\code{top_level}}{A \code{top_level} value of k returns all tuples from the k-best levels. See below for the definition of a level.}
 #'     \item{\code{and_connected}}{Logical value, which is only relevant if more than one of the above \{top, at_least, top_level\} 
-#'     values are given. Then \code{and_connected = TRUE} (which is the default) means that all top-conditions must hold for the returned tuples, i.e.,
+#'     values are given. Then \code{and_connected = TRUE} (which is the default) means that all top-conditions must hold for the returned tuples: 
+#'     Let \code{cond1} and \code{cond2} be top-conditions like \code{top=2} or \code{top_level=3}, then
 #'     \code{psel([...], cond1, cond2)} is equivalent to the intersection of \code{psel([...], cond1)} and \code{psel([...], cond2)}. If we have
 #'     \code{and_connected = FALSE} the conditions are or-connected. This corresponds to the union.}
 #'     \item{\code{show_level}}{This adds a column '.level' to the returned data frame, containing all level values (see below). 
@@ -78,14 +79,15 @@
 #' @section Parallel computation:
 #' 
 #' On multicore machines the preference selection runs in parellel using a divide-and-conquer approach. 
-#' If multi-threaded compuation causes problems on your system or you prefer a single-threaded computation for other reasons,
+#' If you prefer a single-threaded computation,
 #' use the following code to deactivate parallel compuation within rPref:
 #' 
 #' \code{options(rPref.parallel = FALSE)}
 #' 
 #' If this option is not set, rPref will use parallel computation by default.
 #' 
-#' @seealso See \code{\link{complex_pref}} on how to construct a Skyline preference. See \code{\link{plot_front}} on how to plot the pareto front of a Skyline
+#' @seealso See \code{\link{complex_pref}} on how to construct a Skyline preference. 
+#' See \code{\link{plot_front}} on how to plot the pareto front of a Skyline.
 #' 
 #' 
 #' @name psel
@@ -197,7 +199,7 @@ psel.indices <- function(df, pref, ...) {
   
   # ** Calculcalate score/serial pref
  
-  # Precalculate score values for given preference
+  # Precalculate score values for given preference, get_corevals must be called before serialize!
   scores <- pref$get_scorevals(1, df)$scores
   pref_serial <- pref$serialize()
   

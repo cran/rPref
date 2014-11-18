@@ -60,9 +60,12 @@ NumericVector pref_select_impl(DataFrame scores, List serial_pref, int N, double
   NumericVector col1 = scores[0];  
   int ntuples = col1.size();
   
-  // De-Serialize preference
-  pref* p = CreatePreference(serial_pref, scores, 0);
+  // check for empty dataset
+  if (ntuples == 0) return NumericVector();
   
+  // De-Serialize preference
+  pref* p = CreatePreference(serial_pref, scores);
+    
   // Result list
   std::list<int> res;
   
@@ -116,6 +119,9 @@ NumericVector pref_select_impl(DataFrame scores, List serial_pref, int N, double
   
   }
   
+  // Delete preference
+  delete p;
+  
   // Return result
   return(NumericVector(res.begin(), res.end()));
 }
@@ -137,7 +143,9 @@ NumericVector grouped_pref_sel_impl(DataFrame data, DataFrame scores, List seria
   int nind = indices.length();
   std::list<int> res;
   
-  pref* p = CreatePreference(serial_pref, scores, 0);
+  if (nind == 0) return NumericVector();
+  
+  pref* p = CreatePreference(serial_pref, scores);
 
   if (N > 1) { // parallel case
   
@@ -166,6 +174,9 @@ NumericVector grouped_pref_sel_impl(DataFrame data, DataFrame scores, List seria
       res.splice(res.end(), tres);
     }
   }
+  
+  // Delete preference
+  delete p;
   
   return(NumericVector(res.begin(), res.end()));
 }

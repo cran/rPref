@@ -34,7 +34,7 @@
 #' \code{low(a) * (high(b) & low(c))}.
 #' 
 #' 
-#' \item A query in the syntax of the "Skyline" feature of the commercial database "EXASolution 5" like 
+#' \item A query in the syntax of the "Skyline" feature of the commercial database "EXASOL EXASolution 5" like 
 #' 
 #' "\code{... PREFERRING LOW a PLUS (b = 1 PRIOR TO LOW c))}" 
 #' 
@@ -43,6 +43,8 @@
 #' \code{low(a) * (true(b == 1) & low(c))}.
 #' 
 #' }
+#' 
+#' Note that these query conversions can be done by \code{\link{show.query}}. 
 #' 
 #' @section Definition of additional preference operators:
 #' 
@@ -58,7 +60,9 @@
 #'  of the preferences are not disjoint.}
 #'  \item{\code{reverse(p1)} or \code{-p1}}{Reverse preference (converse relation): 
 #'  A tuple t1 is better than t2 w.r.t. \code{-p1} if t2 is better than t1 w.r.t. \code{p1}. 
-#'  The unary minus operator, i.e. \code{-p1}, is a short notation for \code{reverse(p1)}}.
+#'  The unary minus operator, i.e. \code{-p1}, is a short notation for \code{reverse(p1)}.}
+#'  \item{\code{empty()}}{Empty preference, i.e. a neutral element for all complex preference compositions. 
+#'  It holds that \code{op(empty(), p)} is equal to \code{p} for all preference operators \code{op} and all preferences \code{p}.}
 #' }
 #' 
 #'
@@ -92,6 +96,7 @@ NULL
 #' @export
 "*.preference" <- function(p1, p2) {
   check_pref(p1, p2)
+  if (check_empty(p1, p2)) return(get_empty(p1, p2))
 
   # Create new preference function according to the Pareto Definition
   return(complexpref(p1, p2, '*',
@@ -100,15 +105,16 @@ NULL
                      p1$eq & p2$eq))
 }
 
-# Infix Prioritization-Constructor
+# Infix Prioritization-Constructor (special constructor as we have to consider prior-chains!)
 #' @rdname complex_pref
 #' @export
 "&.preference" <- function(p1, p2) {
   check_pref(p1, p2)
+  if (check_empty(p1, p2)) return(get_empty(p1, p2))
   
-  return(complexpref(p1, p2, '&',
-                     p1$cmp | p1$eq & p2$cmp,
-                     p1$eq & p2$eq))
+  return(priorpref(p1, p2, '&',
+                   p1$cmp | p1$eq & p2$cmp,
+                   p1$eq & p2$eq))
 }
 
 
@@ -117,6 +123,7 @@ NULL
 #' @export
 "|.preference" <- function(p1, p2) {
   check_pref(p1, p2)
+  if (check_empty(p1, p2)) return(get_empty(p1, p2))
   
   return(complexpref(p1, p2, '|',
                      p1$cmp & p2$cmp,
@@ -128,6 +135,8 @@ NULL
 #' @export
 "+.preference" <- function(p1, p2) {
   check_pref(p1, p2)
+  if (check_empty(p1, p2)) return(get_empty(p1, p2))
+  
   return(complexpref(p1, p2, '+',
                     p1$cmp | p2$cmp,
                     p1$eq & p2$eq))
@@ -138,25 +147,42 @@ NULL
 #' @rdname complex_pref
 #' @export
 reverse <- function(p1) {
+  check_pref(p1)
+  if (is.empty.pref(p1)) return(p1)
   return(reversepref(p1))
 }
 
 #' @rdname complex_pref
 #' @export
 "-.preference" <- function(p1, p2) {
-  if (nargs() == 1) return(reversepref(p1))
+  if (nargs() == 1) return(reverse(p1))
   else stop("Operation not defined")
 }
 
+# Neutral element
+#' @rdname complex_pref
+#' @export
+empty <- function() empty.pref()
  
 # Helper functions
 # ----------------
   
 # Helper to check if all given arguments are preferences
 check_pref <- function(p1, p2) {
-  if (!(is.preference(p1) && is.preference(p2)))
+  if (!is.preference(p1) || (nargs() == 2 && !is.preference(p2)))
     stop("This operator requires preference objects as input.")
 }
+
+# Check if one (or perhaps both) preference is empty
+check_empty <- function(p1, p2) (is.empty.pref(p1) || is.empty.pref(p2))
+
+# Get the result of a complex operation with an empty pref
+get_empty <- function(p1, p2) {
+  if (is.empty.pref(p1))
+    return(p2) # perhaps empty
+  else
+    return(p1)
+}    
 
 
 # Overload arithmetic operators for arbitrary functions - used for the composition of complex preferences
