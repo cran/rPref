@@ -1,16 +1,8 @@
-rPref 0.3
+rPref 0.4
 =========
 
-* Translation of preferences to other preference query languages via `show.query`
+* New functions for retrieving successors and predecessors of objetcts w.r.t. a preference (see ?pred_succ)
 
-* Optimized evaluation of preferences with long prioritization chains
-
-* Added neutral element `empty()` for preference composition
-
-* Fixed memory leak in preference evaulation
-
-* Fixed bug: wrong Hasse diagramms for some kinds of preferences in get_btg
-
-* Fixed bug: `psel` failed on empty dataframes
-
-* Hasse diagramm can be returned as adjacency list via `get_hasse_diag`
+* New function for partially evaluated string output of preference (show.string)
+  
+* Fixed bug in parallel Top-k preference selection
