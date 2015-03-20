@@ -2,15 +2,15 @@
 #' 
 #' For a given preference this shows the \code{PREFERRING} clause of a database query in different SQL dialects which support preferences.
 #' 
-#' @param p A preference
+#' @param p A preference.
 #' @param dialect The preference query dialect, which determines the Syntax of the returned query. This has to be one of the following:
 #' \describe{
-#'    \item{\code{'EXASOL'}}{Syntax of the "Skyline" feature of the commercial database EXASOL EXASolution 5.}
-#'    \item{\code{'Preference SQL'}}{Syntax of the Preference SQL system. 
+#'    \item{\code{'EXASOL'}:}{Syntax of the "Skyline" feature of the commercial database EXASOL EXASolution 5.}
+#'    \item{\code{'Preference SQL'} or \code{'PSQL'}:}{Syntax of the Preference SQL system. 
 #'      This is a research prototype developed at the Chair of Databases and Information Systems of the University of Augsburg. 
 #'      See references for details.}
 #' }
-#' @param df Optional to specifiy a dataframe on which the preference operates causing a partial evaluation. See \code{\link{show.pref}} for details.
+#' @param df Optional parameter to specifiy a dataframe on which the preference operates causing a partial evaluation. See \code{\link{show.pref}} for details.
 #'     
 #' @details 
 #' 
@@ -20,15 +20,18 @@
 #' 
 #' \code{SELECT * FROM r PREFERRING LOW a PLUS HIGH b}
 #' 
-#' The \code{show.query} function generates just the PREFERRING-clause, i.e. \code{show.query(low(a) * high(b))} returns 
+#' The \code{show.query} function generates just the \code{PREFERRING}-clause, i.e. \code{show.query(low(a) * high(b))} returns 
 #' 
 #' \code{PREFERRING LOW a PLUS HIGH b}
 #' 
-#' As usual in SQL queries all keywords are not case sensitive, i.e. \code{PLUS} or \code{plus} does not make any difference.
+#' As usual in SQL queries, all keywords are not case sensitive, i.e., \code{PLUS} or \code{plus} does not make any difference.
 #' 
 #' @references 
 #' 
 #' W. Kiessling, M. Endres, F. Wenzel (2011): The Preference SQL System - An Overview. IEEE Data Engineering Bulletin, Vol. 34 No. 3, pages 12-19.  
+#' 
+#' S. Mandl, O. Kozachuk, M. Endres, W. Kiessling (2015): Preference Analytics in EXASolution. 
+#' 16th Conference on Database Systems for Business, Technology, and Web.
 #' 
 #' @examples
 #' 
@@ -39,6 +42,8 @@
 #' @export
 show.query <- function(p, dialect = 'EXASOL', df = NULL) {
  
+  if (dialect == "PSQL" || dialect == "PreferenceSQL") dialect = PSQL
+  
   # Check dialect
   if (!(dialect %in% c(EXA, PSQL))) stop(paste0('The dialect "', dialect, '" is unknown.'))
   
@@ -50,16 +55,35 @@ show.query <- function(p, dialect = 'EXASOL', df = NULL) {
 }
 
 
-#' Show a (partially evaluated) preference
+#' Partial evaluation and string output of preferences
 #' 
-#' @param p The preference to be shown.
+#' Functions to substitute variables and functions in preferences which can be calculated before the preference is evaluated on a dataframe.
+#' This is especially used for string output of preferences.
+#' 
+#' @param p,x The preference to be shown or partially evaluated.
 #' @param df (Optional) A dataframe on which the preference operates.
+#' @param ... Optional arguments passed to \code{as.character}.
 #' 
-#' @details If \code{df} is not given this function is identical to typing \code{p} on the console or calling \code{show(p)}.
-#' This standard show function does not do any evaluation and just converts the expressions to characters.
-#' A given dataframe causes that all expressions in \code{p} are evaluated except the attributes in \code{p}, 
-#' i.e. the column names in \code{df}. The content of the dataframe \code{df} does not matter; 
-#' only \code{colnames(df)} is taken to get the "free variables" in \code{p}
+#' @details The function \code{pref.str} (or \code{as.character(p)} for a preference \code{p}) returns the preference string 
+#' while \code{show.pref} outputs it directly to the console, preceded by \code{'[Preference]'}.
+#' If \code{df} is specified, then a partial evaluation of the preference is done before converting it to a string.
+#' 
+#' The function \code{eval.pref} (with given dataframe \code{df}) partially evaluates the internal preference expression and 
+#' returns again a preference object. All expressions in \code{p} are evaluated in the environment
+#' where \code{p} was defined, except the the column names in \code{df} (which are potential attributes in \code{p}).
+#' The content of the dataframe \code{df} does not matter; only \code{names(df)} is used to get the "free variables" in \code{p}.
+#' 
+#' 
+#' @section Partial evaluation before string output:
+#' 
+#' The functions \code{show.pref} and \code{pref.str} have the optinal paramter \code{df}.
+#' If this paramter is given, these functions call \code{eval.pref} before they output/return the preference string.
+#' The following equalities hold:
+#' 
+#' \itemize{
+#'   \item \code{as.character(eval.pref(p, df)) == pref.str(p, df)}
+#'   \item \code{show(eval.pref(p, df))} produces the same console output as \code{show.pref(p, df)}
+#' }
 #' 
 #' @examples
 #' 
@@ -71,18 +95,37 @@ show.query <- function(p, dialect = 'EXASOL', df = NULL) {
 #' 
 #' # prints 'cyl == 2'
 #' show.pref(p, mtcars)
+#' eval.pref(p, mtcars)
 #' 
 #' @export
 show.pref <- function(p, df = NULL) {
-
-  # Output string representation
-  return(cat(paste0('[Preference] ', unbrace(p$get_str(static_terms = get_static_terms(df))))))
+  # Output string representation on the console
+  return(cat(paste0('[Preference] ', pref.str(p, df))))
 }
+
+#' @export
+#' @rdname show.pref
+pref.str <- function(p, df = NULL) {
+  if (is.null(df)) return(p$get_str())
+  else return(eval.pref(p, df)$get_str())
+}
+
+#' @export
+#' @rdname show.pref
+eval.pref <- function(p, df = NULL) {
+  p <- p$copy()
+  p$substitute_expr(static_terms = get_static_terms(df))
+  return(p)
+}
+
+#' @export
+#' @rdname show.pref
+as.character.preference <- function(x, ...) x$get_str()
 
 # Get attributes of a data set as symbols
 get_static_terms <- function(df) {
   # Get static terms (all attributes of dataset, if given)
-  if (!is.null(df)) return(lapply(colnames(df), as.symbol))
+  if (!is.null(df)) return(lapply(names(df), as.symbol))
   else return(NULL)  
 }
 
@@ -159,7 +202,9 @@ show_base_pref <- function(p, dialect, static_terms = NULL) {
 # Get (evaluated, if static_terms is given) expression of base preference
 # Add braces for non-single term 
 get_expr_sql <- function(p, static_terms = NULL) {
-  expr_str <- p$get_expr_str(static_terms)
+  p <- p$copy()
+  p$substitute_expr(static_terms = static_terms)
+  expr_str <- as.character(p$expr)
   if (length(p$expr[[1]]) != 1) return(paste0('(', expr_str, ')'))  # embrace complex expressions
   else return(expr_str) 
 }

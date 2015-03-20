@@ -21,7 +21,7 @@
 #' \item The visualization of the preference order in a Better-Than-Graph is possible via the \code{\link{get_btg}} function
 #' in connection with the \code{\link{igraph}} package.
 #' \item The adjacency list of the Better-Than-Graph (Hasse diagramm) can be accessed via \code{\link{get_hasse_diag}}.
-#' \item Predecessors/Successors in the Hasse diagram are calculated with the \code{\link{pred_succ}} functions.
+#' \item Predecessors/successors in the Hasse diagram are calculated with the \code{\link{pred_succ}} functions.
 #' \item The pareto frontier can be plotted using the \code{\link{plot_front}} function.
 #' }
 #' 
@@ -29,7 +29,7 @@
 #' 
 #' \itemize{
 #' \item The preference query for some preference-supporting DBMS can be given by \code{\link{show.query}}.
-#' \item A partially evaluated preference is printed with \code{\link{show.pref}}.
+#' \item A preference is partially evaluated and printed with \code{\link{show.pref}}.
 #' }
 #' 
 #' @section Further information:
@@ -42,5 +42,6 @@
 #' @name rPref
 #' @useDynLib rPref
 #' @importFrom Rcpp cppFunction
+#' @importFrom RcppParallel RcppParallelLibs
 #' @import igraph methods
 NULL

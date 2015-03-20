@@ -14,12 +14,12 @@ preference <- setRefClass("preference",
     
     # Default show function
     show = function() {
-      return(cat(paste0('[Preference] ', unbrace(.self$get_str()))))
+      return(cat(paste0('[Preference] ', .self$get_str())))
     },
     
     # Get string representation
     get_str = function(parent_op = "", static_terms = NULL) {
-      return("((empty))") # Outer brackets are removed by "unbrace"
+      return("(empty)") 
     },
     
     
@@ -32,55 +32,65 @@ preference <- setRefClass("preference",
       serialized <- .self$serialize()
       .self$hasse_mtx <- t(get_hasse_impl(.self$scorevals, serialized)) + 1
       .self$cache_available <- TRUE
-      return()
+      # returns nothing
     },
     
     check_cache = function() {
-      if (!isTRUE(.self$cache_available)) stop("No data set avaible. Run `init_succ_pref(df)` first.")
+      if (!isTRUE(.self$cache_available)) 
+        stop("In calculation of predecessors/successors : No data set avaible. Run `init_succ_pref(df)` first.", call. = FALSE)
     },
     
-    # Hasse diagramm successors
-    h_succ = function(inds) {
+    # Hasse diagramm successors/predecessors
+    h_predsucc = function(inds, do_intersect, succ) {
       .self$check_cache()
-      if (length(inds) == 1) {
-        return(.self$hasse_mtx[.self$hasse_mtx[,1]==inds,2])
-      } else {
-        res_inds <- lapply(inds, function(x) .self$hasse_mtx[.self$hasse_mtx[,1]==x,2])
-        return(Reduce('union', res_inds[-1], res_inds[[1]]))
-      }
-    },
       
-    # Hasse diagramm predecessors
-    h_pred = function(inds) {
-      .self$check_cache()
-      if (length(inds) == 1) { 
-        return(.self$hasse_mtx[.self$hasse_mtx[,2]==inds,1])
+      # Select indices predecessors/successors
+      if (succ) {
+        l_index <- 1
+        r_index <- 2
       } else {
-        res_inds <- lapply(inds, function(x) .self$hasse_mtx[.self$hasse_mtx[,2]==x,1])
-        return(Reduce('union', res_inds[-1], res_inds[[1]]))
+        l_index <- 2
+        r_index <- 1
+      }
+      
+      # Selection aggregation method, if inds is a vector (and not a single value)
+      if (do_intersect) agg <- intersect
+      else              agg <- union
+      
+      # Do the calculation
+      if (length(inds) == 0) {
+        return(numeric(0))
+      } else if (length(inds) == 1) { 
+        return(.self$hasse_mtx[.self$hasse_mtx[,l_index]==inds,r_index])
+      } else {
+        res_inds <- lapply(inds, function(x) .self$hasse_mtx[.self$hasse_mtx[,l_index]==x,r_index])
+        return(sort(Reduce(agg, res_inds[-1], res_inds[[1]])))
       }
     },
     
-      
-    # All succesors
-    all_succ = function(inds) {
+    # All succesors/predecessors (sorting not necessary because of "which")
+    all_predsucc = function(inds, do_intersect, succ) {
       .self$check_cache()
-      all_inds <- 1:nrow(.self$scorevals)
-      if (length(inds) == 1) {
-        which(.self$cmp(inds, all_inds, .self$scorevals))
+      
+      # Select indices predecessors/successors
+      if (succ) {
+        cmpfun <- function(x, y) .self$cmp(x, y, .self$scorevals)
       } else {
-        return(which(as.logical(do.call("pmax", lapply(inds, function(x) .self$cmp(x, all_inds, .self$scorevals) )))))
+        cmpfun <- function(x, y) .self$cmp(y, x, .self$scorevals)
       }
-    },
       
-    # All predecessors
-    all_pred = function(inds) {
+      # Selection aggregation method, if inds is a vector (and not a single value)
+      if (do_intersect) agg <- pmin  # min is logically equivalent to intersection
+      else              agg <- pmax  # max is logically equivalent to union
+      
       .self$check_cache()
       all_inds <- 1:nrow(.self$scorevals)
-      if (length(inds) == 1) {
-        which(.self$cmp(all_inds, inds, .self$scorevals))
+      if (length(inds) == 0) {
+        return(numeric(0))
+      } else if (length(inds) == 1) {
+        return(which(cmpfun(inds, all_inds)))
       } else {
-        return(which(as.logical(do.call("pmax", lapply(inds, function(x) .self$cmp(all_inds, x, .self$scorevals) )))))
+        return(which(as.logical(do.call(agg, lapply(inds, function(x) cmpfun(x, all_inds) )))))
       }
     }
     
@@ -97,6 +107,11 @@ empty.pref <- setRefClass("empty.pref",
       return(list(next_id = next_id + 1, scores = as.data.frame(rep(0, nrow(df)))))
     },
     
+    # Term length (Number of base preferences)
+    get_length = function() {
+      return(0)
+    },
+    
     cmp = function(i, j, score_df) { # TRUE if i is better than j
       return(FALSE)
     },
@@ -110,6 +125,7 @@ empty.pref <- setRefClass("empty.pref",
     }
   )    
 )
+
 is.empty.pref <- function(x) inherits(x, "empty.pref")
 
 # cmp/eq functions are not needed for C++ BNL algorithms, but for igraph, etc.
@@ -127,7 +143,7 @@ basepref <- setRefClass("basepref",
     
     # Calculate scorevals as dataframe, increment score id
     get_scorevals = function(next_id, df) {
-      .self$score_id = next_id
+      .self$score_id <- next_id
       # Calc score of base preference
       scores <- .self$calc_scores(df, .self$eval_frame)
       # Check if length ok
@@ -139,6 +155,11 @@ basepref <- setRefClass("basepref",
       return(list(next_id = next_id + 1, scores = as.data.frame(scores)))
     },
     
+    # Term length (Number of base preferences)
+    get_length = function() {
+      return(1)
+    },
+    
     cmp = function(i, j, score_df) { # TRUE if i is better than j
       return(score_df[i, .self$score_id] < score_df[j, .self$score_id])
     },
@@ -146,57 +167,50 @@ basepref <- setRefClass("basepref",
     eq = function(i, j, score_df) { # TRUE if i is equal to j
       return(score_df[i, .self$score_id] == score_df[j, .self$score_id])
     },
-      
+    
     # Get expression string, with partial evaluation if static_terms is not NULL (they are not evaluated)
-    get_expr_str = function(static_terms = NULL) {
+    substitute_expr = function(static_terms = NULL) {
       if (!is.null(static_terms)) {
         get_expr_evaled <- function(lexpr) {
           lexpr <- lexpr[[1]]
           if (is.symbol(lexpr)) { 
             if (as.character(lexpr) == '...') # ... cannot be eval'd directly!
-              return(list(str = '...', final = FALSE)) # ... is never final, will be evaluated above if possible
+              return(list(expr = lexpr, final = FALSE)) # ... is never final, will be evaluated above if possible
             else if (any(vapply(static_terms, function(x) identical(lexpr, x), TRUE)))
-              return(list(str = as.character(lexpr), final = TRUE)) # static_term => final
+              return(list(expr = lexpr, final = TRUE)) # static_term => final
             else
-              return(list(str = deparse(eval(lexpr, .self$eval_frame)), final = FALSE))
+              return(list(expr = as.expression(list(eval(lexpr, .self$eval_frame))), final = FALSE))
           
           } else if (length(lexpr) == 1) { # Not a symbol => not final
-            return(list(str = as.character(lexpr), final = FALSE))
+            return(list(expr = lexpr, final = FALSE))
             
           } else { # n-ary function/operator
             
             # Go into recursion
             expr_evals <- list()
-            for (i in 2:length(lexpr)) expr_evals[[i-1]] <- get_expr_evaled(lexpr[i])
+            for (i in 2:length(lexpr)) {
+              expr_evals[[i-1]] <- get_expr_evaled(lexpr[i])
+              lexpr[i] <- as.expression(expr_evals[[i-1]]$expr)
+            }
             
             # Check if not final
             if (all(vapply(expr_evals, function(x) x$final, TRUE) == FALSE)) { 
               # ** re-eval
               # Especially eval ... at that level where ... is an operand
-              str <- deparse(eval(lexpr, .self$eval_frame)) # May be a vector
-              return(list(str = str, final = FALSE)) # still not final
+              return(list(expr = as.expression(list(eval(lexpr, .self$eval_frame))), final = FALSE)) # still not final
             } else {
-              expr_strs <- lapply(expr_evals, function(x) x$str)
-              # ** Put term together on string level (no re-eval!) 
-              fun_str <- as.character(lexpr[1][[1]])
-              if (fun_str == '(') fun_str <- ''
-              if (substr(deparse(lexpr[1]), 1, 1) == '`') # check if %-infix/classic operator
-                str <- paste0(expr_strs[[1]], ' ', fun_str, ' ', expr_strs[[2]])
-              else
-                str <- paste0(fun_str, '(', paste(expr_strs, collapse = ', '), ')')
-              return(list(str = str, final = TRUE)) # already final!
+              return(list(expr = lexpr, final = TRUE)) # already final!
             }
           }
-        } 
-        return(get_expr_evaled(.self$expr)$str)
-      } else {
-        return(as.character(.self$expr))
+        }
+        .self$expr <- as.expression(get_expr_evaled(.self$expr)$expr)
       }
+      return(NULL) # nothing to return
     },
     
     # Get string representation
-    get_str = function(parent_op = "", static_terms = NULL) {
-      return(paste0(.self$op(), '(', .self$get_expr_str(static_terms), ')'))
+    get_str = function(parent_op = "") {
+      return(paste0(.self$op(), '(', as.character(.self$expr), ')'))
     },
     
     serialize = function() {
@@ -205,7 +219,6 @@ basepref <- setRefClass("basepref",
   )
 )
 is.basepref <- function(x) inherits(x, "basepref")
-
 
 lowpref <- setRefClass("lowpref", 
   contains = "basepref",
@@ -240,6 +253,19 @@ is.highpref <- function(x) inherits(x, "highpref")
 truepref <- setRefClass("truepref", 
   contains = "basepref",
   methods = list(
+    
+    initialize = function(...) {
+      callSuper(...)
+      if (isTRUE(getOption("rPref.checkLogicalAndOr", default = TRUE))) {
+        if (length(as.character(.self$expr) > 0) && grepl(" \\|\\||\\&\\& ", as.character(.self$expr)))
+          warning(paste0("In true(...) :\n", 
+                   "Detected logical operator '&&' or '||' in logical expreesion -- possibly unexpected behavior. ",
+                   "Probably you intended '&' or '|'? Set \n'options(rPref.checkLogicalAndOr = FALSE)' \nto disable this warning."),
+                   call. = FALSE)
+      }
+      return(.self)
+    },
+    
     op = function() 'true',
     
     calc_scores = function(df, frm) {
@@ -257,18 +283,19 @@ reversepref <- setRefClass("reversepref",
   contains = "preference",
   fields = list(p = "preference"),
   methods = list(
-    initialize = function(p_) {
+    initialize = function(p_ = preference()) {
       .self$p <- p_
       return(.self)
     },
     
     get_scorevals = function(next_id, df) {
       res <- p$get_scorevals(next_id, df)
-      return(list(next_id = res$next_id + 1, scores = res$scores))
+      return(list(next_id = res$next_id, scores = res$scores))
     },
     
-    get_str = function(parent_op = "", static_terms = NULL) {
-      return(paste0('-', .self$p$get_str(parent_op, static_terms)))
+    # Get string representation
+    get_str = function(parent_op = "") {
+      return(paste0('-', .self$p$get_str(parent_op)))
     },
     
     cmp = function(i, j, score_df) { # TRUE if i is better than j
@@ -279,6 +306,16 @@ reversepref <- setRefClass("reversepref",
     
     serialize = function() {
       return(list(kind = '-', p = .self$p$serialize()));
+    },
+    
+    # Term length (Number of base preferences)
+    get_length = function() {
+      return(.self$p$get_length())
+    },
+    
+    substitute_expr = function(static_terms = NULL) {
+      .self$p$substitute_expr(static_terms)
+      return(NULL)
     }
   )
 )
@@ -289,16 +326,12 @@ is.reversepref <- function(x) inherits(x, "reversepref")
 # cmpcom and eqcomp functions are set via constructor and are just compositions (refering to $cmp and $eq)
 complexpref <- setRefClass("complexpref",
   contains = "preference",
-  fields = list(p1 = "preference", p2 = "preference", op = "character", 
-                cmpcomp = "function", eqcomp = "function", prior_chain = "logical"),
+  fields = list(p1 = "preference", p2 = "preference", op = "character"),
   methods = list(
-    initialize = function(p1_ = preference(), p2_ = preference(), op_ = '', cmp_ = function() NULL, eq_ = function() NULL) {
+    initialize = function(p1_ = preference(), p2_ = preference(), op_ = '') {
       .self$p1      <- p1_
       .self$p2      <- p2_
       .self$op      <- op_
-      .self$cmpcomp <- cmp_ # composition of cmp function
-      .self$eqcomp  <- eq_
-      .self$prior_chain <- FALSE
       return(.self)
     },
       
@@ -310,10 +343,10 @@ complexpref <- setRefClass("complexpref",
       return(list(next_id = res2$next_id, scores = cbind(res1$scores, res2$scores)))
     },
     
-    get_str = function(parent_op = "", static_terms = NULL) {
-      res <- paste0(.self$p1$get_str(.self$op, static_terms), ' ', .self$op, ' ', 
-                    .self$p2$get_str(.self$op, static_terms))
-      if (.self$op != parent_op) res <- embrace(res)
+    # Get string representation
+    get_str = function(parent_op = "") {
+      res <- paste0(.self$p1$get_str(.self$op), ' ', .self$op, ' ', .self$p2$get_str(.self$op))
+      if (parent_op != "" && .self$op != parent_op) res <- embrace(res)
       return(res)
     },
     
@@ -322,13 +355,71 @@ complexpref <- setRefClass("complexpref",
       return(list(kind = .self$op, p1 = .self$p1$serialize(), p2 = .self$p2$serialize()))
     },
     
-    # Simple wrapper for cmp/eq compositions (overwritten by prioritization)
-    cmp = function(...) .self$cmpcomp(...),
-    eq  = function(...) .self$eqcomp(...)
+    # Term length (Number of base preferences)
+    get_length = function() {
+      return(.self$p1$get_length() + .self$p2$get_length())
+    },
+    
+    # Substitute all evaluatable parts of expression by their evaluations
+    substitute_expr = function(static_terms = NULL) {
+      .self$p1$substitute_expr(static_terms)
+      .self$p2$substitute_expr(static_terms)
+      return(NULL)
+    },
+    
+    # Equivalence composition for all complex preferences
+    eq  = function(...) (.self$p1$eq(...) & .self$p2$eq(...))
     
   )
 )
 is.complexpref <- function(x) inherits(x, "complexpref")
+
+
+paretopref <- setRefClass("paretopref",
+  contains = "complexpref",
+  methods = list(   
+    
+    initialize = function(p1_ = preference(), p2_ = preference()) {
+      callSuper(p1_, p2_, '*')
+      return(.self)
+    },
+
+    cmp = function(...) 
+      ( (p1$cmp(...) | p1$eq(...)) & p2$cmp(...) |
+        (p2$cmp(...) | p2$eq(...)) & p1$cmp(...)   )
+  )
+)
+
+
+unionpref <- setRefClass("unionpref",
+  contains = "complexpref",
+  methods = list(   
+    
+    initialize = function(p1_ = preference(), p2_ = preference()) {
+      callSuper(p1_, p2_, '+')
+      return(.self)
+    },
+
+    cmp = function(...) 
+      (p1$cmp(...) | p2$cmp(...))
+  )
+)
+
+
+intersectionpref <- setRefClass("intersectionpref",
+  contains = "complexpref",
+  methods = list(   
+    
+    initialize = function(p1_ = preference(), p2_ = preference()) {
+      callSuper(p1_, p2_, '|')
+      return(.self)
+    },
+
+    cmp = function(...) 
+      (p1$cmp(...) & p2$cmp(...))
+  )
+)
+
 
 # double has 52 bits significand, thus the largest double number d which surely fulfills "d \neq d+1" is 2^52
 MAX_CHAIN_LENGTH <- 52 
@@ -337,6 +428,12 @@ priorpref <- setRefClass("priorpref",
   contains = "complexpref",
   fields = list(chain_size = "numeric", prior_chain = "logical", prior_score_id = "numeric"),
   methods = list(   
+    
+    initialize = function(p1_ = preference(), p2_ = preference()) {
+      callSuper(p1_, p2_, '&')
+      .self$prior_chain <- FALSE # false by default
+      return(.self)
+    },
     
     # Check if we have a purely prioritization chain - calculate highest value
     get_prior_length = function() {
@@ -423,7 +520,7 @@ priorpref <- setRefClass("priorpref",
         }
       }
       
-      # ** All else-paths: Handle like usual complex preference, but propagete get_greatest_subtree
+      # ** All else-paths: Handle like usual complex preference, but propagate get_greatest_subtree
       res1 <- if (is.priorpref(.self$p1)) .self$p1$get_scorevals(next_id,      df, get_greatest_subtree) else .self$p1$get_scorevals(next_id,      df)
       res2 <- if (is.priorpref(.self$p2)) .self$p2$get_scorevals(res1$next_id, df, get_greatest_subtree) else .self$p2$get_scorevals(res1$next_id, df)
       return(list(next_id = res2$next_id, scores = cbind(res1$scores, res2$scores)))
@@ -437,20 +534,21 @@ priorpref <- setRefClass("priorpref",
         return(callSuper())
     },
     
-    # Wrapper for Compare/Prioritization
+    # Compare/Prioritization
     cmp = function(i, j, score_df) {
       if (.self$prior_chain) # Prior-Chain => Score Pref
         return(score_df[i, .self$prior_score_id] < score_df[j, .self$prior_score_id])
       else
-        return(.self$cmpcomp(i, j, score_df)) # Usual composition function
+        return( .self$p1$cmp(i, j, score_df) | 
+               (.self$p1$eq( i, j, score_df) & .self$p2$cmp( i, j, score_df)) ) # Usual composition function
     },
     
-    # Wrapper for Equal/Prioritization
+    # Equal/Prioritization
     eq = function(i, j, score_df) {
       if (.self$prior_chain) # Prior-Chain => Score Pref
         return(score_df[i, .self$prior_score_id] == score_df[j, .self$prior_score_id])
       else
-        return(.self$eqcomp(i, j, score_df)) # Usual composition function
+        return(callSuper(i, j, score_df)) 
     }  
   )
 )
