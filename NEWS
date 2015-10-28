@@ -1,18 +1,20 @@
-rPref 0.6
+rPref 0.7
 =========
 
-* Fixed bug for iterated application of partial evaluation (eval.pref) 
+* New page "general_pref" in the documentation collecting
+  some useful functions for preference objects
 
-* Added partial evaluation functionality (additional parameter df) 
-  to base preferences (base_pref)
-
-* New default values for parameters of preference algorithms 
-  (Scalagon alpha = 1, parallel computation is inactive by default)
-
-* New plotting function plot_btg for drawing preference graphs
+* Moved length, as.expression, as.character from show_pref to
+  to general_pref
   
-* Additional parameter flip.edges for plotting preference graphs
+* Moved empty() from complex_pref to general_pref
+  
+* New functions is.preference, is.complex_pref, is.base_pref, 
+  is.empty_pref (in general_pref)
 
-* Additional special variable "df__" in base preference to access the data set
+* Fixed visibility of as.expression() function for preference objects
 
-* Added as.expression() function for preference objects
+* Changed behavior of show_level parameter of the psel function
+
+* Parameter "dialect" in show.query is not case sensitive anymore
+
