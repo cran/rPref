@@ -30,9 +30,17 @@ for (parallelity in c(FALSE, TRUE)) {
   test_that("Test Preference selection", {
     expect_equal(psel(mtcars, low(mpg))$mpg, c(10.4, 10.4))
     expect_equal(psel(mtcars, low(mpg) & low(hp))$hp, 205)
-    expect_equal(sort(psel(mtcars, high(mpg) * high(hp))$mpg), c(15, 15.8, 17.3, 19.7, 30.4, 32.4, 33.9))
     
-    expect_equal(sort(psel(mtcars, true(mpg < 15) * true(am == 0))$mpg), c(10.4, 10.4, 13.3, 14.3, 14.7))
+    # Test associated data frames
+    p <- high(mpg) * high(hp)
+    expect_equal(get.df(p), NULL)
+    
+    set.df(p, mtcars)
+    expect_equal(sort(peval(p)$mpg), c(15, 15.8, 17.3, 19.7, 30.4, 32.4, 33.9))
+    expect_equal(get.df(p), mtcars)
+    
+    p <- true(mpg < 15) * true(am == 0, df = mtcars)
+    expect_equal(sort(peval(p)$mpg), c(10.4, 10.4, 13.3, 14.3, 14.7))
   })
   
   
@@ -120,4 +128,12 @@ for (parallelity in c(FALSE, TRUE)) {
     expect_equal(psel(group_by(mtcars, cyl), low(mpg) * high(hp), at_least = 3)$.level, c(1,1,2,1,1,2,2,1,1,1))
   })
   
-}  
+  # Top-K Tests with two parameters using and_connected
+  test_that("Test TOP-k Preference selection on mtcars", {
+    expect_equal(psel(mtcars, low(mpg), top = 5, top_level = 2, and_connected = TRUE)$.level, c(1, 1, 2))
+    expect_equal(psel(mtcars, low(mpg), top = 4, top_level = 5, and_connected = TRUE)$.level, c(1, 1, 2, 3))
+    expect_equal(psel(mtcars, low(mpg), top = 5, top_level = 2, and_connected = FALSE)$.level, c(1, 1, 2, 3, 4))
+    expect_equal(psel(mtcars, low(mpg), top = 3, top_level = 5, and_connected = FALSE)$.level, c(1, 1, 2, 3, 4, 5))
+  })
+  
+}
