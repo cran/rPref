@@ -1,6 +1,6 @@
 ## ---- echo = FALSE, message = FALSE--------------------------------------
 library(rPref)
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 library(ggplot2)
 
 ## ---- fig.width = 6, fig.height = 4--------------------------------------
@@ -36,11 +36,7 @@ knitr::kable(select(df, num, am, gear, mpg, .level))
 plot_btg(df, p)
 
 ## ------------------------------------------------------------------------
-labels <- paste(df$num, paste(df$am, df$gear, df$mpg, sep = ";"), sep = ": ")
-plot_btg(df, p, labels)
-
-## ------------------------------------------------------------------------
-set.df(p, df)
+assoc.df(p) <- df
 init_pred_succ(p)
 
 ## ---- collapse = TRUE----------------------------------------------------

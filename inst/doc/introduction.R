@@ -1,6 +1,6 @@
 ## ---- echo = FALSE, message = FALSE--------------------------------------
 library(rPref)
-library(dplyr)
+suppressPackageStartupMessages(library(dplyr))
 
 ## ---- results='asis'-----------------------------------------------------
 p <- high(mpg) * high(hp)
