@@ -33,7 +33,7 @@ If it is \code{FALSE} (by default) the union of all predecessors/successors of \
 For \code{intersect = TRUE} the intersection of those values is returned.}
 }
 \description{
-Function for traversing the BTG (Better-Than-Graph or Hasse diagram) of a preference.
+Functions for traversing the BTG (Better-Than-Graph or Hasse diagram) of a preference.
 }
 \details{
 These functions return the predecessors and successors in the Better-Than-Graph of a preference.
@@ -45,7 +45,7 @@ Before any of the successor/predecessor functions can be used the initialization
 There \code{p} is a preference object and \code{df} a data frame. 
 When this done, the data frame \code{df} is associated with \code{p}, i.e.,
 implicitly \code{\link{assoc.df}} is called. 
-If the preference has already an associcated data frame, \code{df} can be omitted. For example
+If the preference has already an associated data frame, \code{df} can be omitted. For example
 
 \code{p <- low(mpg, df = mtcars)} \cr
 \code{init_pred_succ(p)}
@@ -78,17 +78,17 @@ For scalar values \code{x} and \code{y} the following identities hold, where \co
 }
 \examples{
 
-# preference on mtcars for high mpg and low weight
+# Preference on mtcars for high mpg and low weight
 p <- high(mpg) * low(wt)
 init_pred_succ(p, mtcars)
 
-# helper to show mpg/hp values
+# Helper to show mpg/hp values
 show_vals <- function(x) mtcars[x,c('mpg','wt')]
 
-# pick some tuple "in the middle"
+# Pick some tuple "in the middle":
 show_vals(10)
 
-# show (direct) predecessors/successors of tuple 10
+# Show (direct) predecessors/successors of tuple 10:
 show_vals(hasse_pred(p, 10)) # Next better car
 show_vals(hasse_succ(p, 10)) # Next worse car
 show_vals(all_pred(p, 10))   # All better cars

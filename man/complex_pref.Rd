@@ -48,7 +48,7 @@ The syntactical correspondence to other query languages supporting Skylines/pref
 is given as follows:
 
 \itemize{
-\item A query in the syntax from Borzsonyi et. al (2001) like
+\item A query in the syntax from Börzsönyi et. al (2001) like
 
 "\code{... SKYLINE OF a MAX, b MIN, c MAX}" 
 
@@ -115,7 +115,7 @@ as well as
 \code{p <- high(mpg) * high(hp, df = mtcars)}
 
 both result in the same complex preference which is associated with \code{mtcars}. 
-A partial evaluation is also invoked for all preferenced which are added. 
+A partial evaluation is also invoked for all preferences which are added. 
 For example, using this \code{p}, 
 
 \code{p <- p * true(cyl == max(mtcars$cyl))}
@@ -129,14 +129,14 @@ We see that the association with the data set is propagated and \code{max(mtcars
 }
 
 \examples{
-# define preference for cars with low consumption (high mpg-value) 
-# and simultaneously high horsepower
+# Defines a preference for cars with low consumption (high mpg-value)
+# and simultaneously high horsepower.
 p1 <- high(mpg) * high(hp)  
 
-# perform the preference search
+# Performs the preference search.
 psel(mtcars, p1)
 
-# alternative way: create preference with associated data set
+# Alternative way: create preference with associated data set.
 p2 <- high(mpg, df = mtcars) * high(hp)  
 peval(p2)
 }

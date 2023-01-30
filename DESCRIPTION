@@ -1,6 +1,6 @@
 Package: rPref
-Version: 1.3
-Date: 2019-02-15
+Version: 1.4.0
+Date: 2023-01-28
 Title: Database Preferences and Skyline Computation
 Author: Patrick Roocks <mail@p-roocks.de>
 Maintainer: Patrick Roocks <mail@p-roocks.de>
@@ -10,13 +10,12 @@ Description: Routines to select and visualize the maxima for a given strict
     (2001) <doi:10.1109/ICDE.2001.914855>), and some generalizations 
     known as database preferences (see Kießling (2002) 
     <doi:10.1016/B978-155860869-6/50035-4>).
-URL: https://www.p-roocks.de/rpref
+URL: https://www.p-roocks.de/rpref/
 Depends: R (>= 3.1.2)
-Imports: Rcpp (>= 1.0.0), RcppParallel (>= 4.3.6), dplyr (>= 0.8.0),
+Imports: Rcpp (>= 1.0.0), RcppParallel (>= 5.1.6), dplyr (>= 1.0.0),
         igraph (>= 1.0.1), lazyeval (>= 0.2.1), methods, utils
 SystemRequirements: C++11, GNU make, Windows: cmd.exe and cscript.exe
 License: GPL (>= 2)
-LazyData: true
 LinkingTo: Rcpp, RcppParallel
 Suggests: testthat, graph, Rgraphviz (>= 2.16.0), knitr, ggplot2,
         rmarkdown
@@ -24,9 +23,9 @@ Collate: 'rPref.r' 'RcppExports.R' 'pref-classes.r' 'base-pref.r'
         'base-pref-macros.r' 'complex-pref.r' 'general-pref.r'
         'pref-eval.r' 'show-pref.r' 'visualize.r' 'pred-succ.r'
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.3
 Encoding: UTF-8
 NeedsCompilation: yes
-Packaged: 2019-02-15 23:35:04 UTC; patrick
+Packaged: 2023-01-28 21:27:57 UTC; patrick
 Repository: CRAN
-Date/Publication: 2019-02-16 10:00:03 UTC
+Date/Publication: 2023-01-30 19:50:02 UTC
