@@ -7,12 +7,12 @@
 get_hasse_diag(df, pref)
 }
 \arguments{
-\item{df}{A data frame.}
+\item{df}{A data frame or data frame extension (e.g., a tibble) for which the Hasse diagram is calculated.}
 
 \item{pref}{A preference on the columns of \code{df}, see \code{\link{psel}} for details.}
 }
 \description{
-Returns the adjacency list of the Hasse diagram of a preference as an (n x 2) matrix. 
+Returns the adjacency list of the Hasse diagram of a preference as an (n x 2) matrix.
 This is the transitive reduction of the preference relation.
 }
 \details{

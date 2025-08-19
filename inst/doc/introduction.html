@@ -12,7 +12,7 @@
 
 <meta name="author" content="Patrick Roocks" />
 
-<meta name="date" content="2023-01-28" />
+<meta name="date" content="2025-08-19" />
 
 <title>Introduction to rPref</title>
 
@@ -51,7 +51,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +62,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -340,7 +340,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">Introduction to rPref</h1>
 <h4 class="author">Patrick Roocks</h4>
-<h4 class="date">2023-01-28</h4>
+<h4 class="date">2025-08-19</h4>
 
 
 
@@ -360,9 +360,9 @@ the <code>mtcars</code> data set and the dimensions <code>mpg</code>
 <code>mpg</code> value) and high power we create the preference and
 evaluate it on <code>mtcars</code>. Using <code>select</code> from the
 dplyr package we restrict our attention to the relevant columns:</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">high</span>(mpg) <span class="sc">*</span> <span class="fu">high</span>(hp)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, mpg, hp))</span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">high</span>(mpg) <span class="sc">*</span> <span class="fu">high</span>(hp)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, mpg, hp))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -415,20 +415,20 @@ Pareto-dominated according to this preference. This means, we are not
 interested in those cars, which are strictly worse in at least one
 dimension and worse/equal in the other dimension (i.e., they are
 <em>dominated</em>).</p>
-<p>We can add a third optimization goal like minimizing the 1/4 mile
-time of a car. Additionally to the preference selection via
+<p>We can add a third optimization objective like minimizing the 1/4
+mile time of a car. Additionally to the preference selection via
 <code>psel</code>, preference objects can be associated with data sets
 and then processed via <code>peval</code> (preference evaluation). For
 example</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">high</span>(mpg, <span class="at">df =</span> mtcars) <span class="sc">*</span> <span class="fu">high</span>(hp) <span class="sc">*</span> <span class="fu">low</span>(qsec)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>p</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="do">## [Preference] high(mpg) * high(hp) * low(qsec)</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="do">##   * associated data source: data.frame &quot;mtcars&quot; [32 x 11]</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">high</span>(mpg, <span class="at">df =</span> mtcars) <span class="sc">*</span> <span class="fu">high</span>(hp) <span class="sc">*</span> <span class="fu">low</span>(qsec)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>p</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="do">## [Preference] high(mpg) * high(hp) * low(qsec)</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="do">##   * associated data source: data.frame &quot;mtcars&quot; [32 x 11]</span></span></code></pre></div>
 <p>creates a 3-dimensional Pareto preference which is associated with
 <code>mtcars</code>. We can evaluate this preference using
 <code>peval(p)</code> which returns the Pareto optima:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">peval</span>(p)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, mpg, hp, qsec))</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">peval</span>(p)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, mpg, hp, qsec))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -506,8 +506,10 @@ the preference on another data set (which does not change the
 association of <code>p</code>). Using the <code>filter</code> function
 from dplyr we can first pick all cars with automatic transmission
 (<code>am == 0</code>) and then get the Pareto optima:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> mtcars <span class="sc">%&gt;%</span> <span class="fu">filter</span>(am <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span> <span class="fu">psel</span>(p)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, mpg, hp, qsec))</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> mtcars <span class="sc">%&gt;%</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">filter</span>(am <span class="sc">==</span> <span class="dv">0</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="fu">psel</span>(p)</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, mpg, hp, qsec))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -614,15 +616,15 @@ we prefer cars with manual transmission (<code>am == 0</code>). If two
 cars are equivalent according to this criterion, then the higher number
 of gears should be the decisive criterion. This is known as the
 lexicographical order and can be realized with</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">true</span>(am <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> <span class="fu">high</span>(gear)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>p <span class="ot">&lt;-</span> <span class="fu">true</span>(am <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> <span class="fu">high</span>(gear)</span></code></pre></div>
 <p>where <code>true</code> is a Boolean preference, where those tuples
 are preferred fulfilling the logical condition. The <code>&amp;</code>
 is a non-commutative operator creating a lexicographical order, also
 called <em>Prioritization</em> in the context of database
 preferences.</p>
 <p>We evaluate this preference on the <code>mtcars</code> data set:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl))</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -677,9 +679,9 @@ arbitrary arithmetic expressions (and accordingly logical, for
 <code>true</code>). For example, we can Pareto-combine the
 lexicographical order from above with a wish for an high power per
 cylinder ratio:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>p <span class="ot">&lt;-</span> (<span class="fu">true</span>(am <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> <span class="fu">high</span>(gear)) <span class="sc">*</span> <span class="fu">high</span>(hp<span class="sc">/</span>cyl)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl))</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>p <span class="ot">&lt;-</span> (<span class="fu">true</span>(am <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">&amp;</span> <span class="fu">high</span>(gear)) <span class="sc">*</span> <span class="fu">high</span>(hp <span class="sc">/</span> cyl)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p)</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -711,8 +713,8 @@ interested in the tuples slightly worse than the optimum. rPref offers a
 top-k preference selection, iterating the preference selection on the
 remainder on the data set until k tuples are returned. To get the 3 best
 tuples we use:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p, <span class="at">top =</span> <span class="dv">3</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl, .level))</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p, <span class="at">top =</span> <span class="dv">3</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl, .level))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -759,8 +761,8 @@ first three tuples have levels {1, 2, 3}. The top-k parameter produces a
 nondeterministic cut, i.e., there could be more tuples in the third
 level. To avoid the cut, we use the <code>at_least</code> parameter,
 returning all tuples from the last level:</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p, <span class="at">at_least =</span> <span class="dv">3</span>)</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl, .level))</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(mtcars, p, <span class="at">at_least =</span> <span class="dv">3</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, am, gear, hp, cyl, .level))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -820,6 +822,8 @@ to explicitly state the number of iterations. The preference selection
 with <code>top_level = 3</code> is identical to the statement above in
 this case, because just one tuple resides in each of the levels 1 and
 2.</p>
+<p>In addition, <code>top = Inf</code> can be used to return all
+levels.</p>
 </div>
 <div id="grouped-preference-selection" class="section level2">
 <h2>Grouped preference selection</h2>
@@ -828,9 +832,9 @@ perform a preference selection on each group separately. For example, we
 search for the cars maximizing <code>mpg</code> and <code>hp</code> in
 each group of cars with the same number of cylinders. This is done
 by:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>grouped_df <span class="ot">&lt;-</span> <span class="fu">group_by</span>(mtcars, cyl)</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(grouped_df, <span class="fu">high</span>(hp) <span class="sc">*</span> <span class="fu">high</span>(mpg))</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, cyl, hp, mpg))</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>grouped_df <span class="ot">&lt;-</span> <span class="fu">group_by</span>(mtcars, cyl)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">psel</span>(grouped_df, <span class="fu">high</span>(hp) <span class="sc">*</span> <span class="fu">high</span>(mpg))</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(<span class="fu">select</span>(res, cyl, hp, mpg))</span></code></pre></div>
 <table>
 <thead>
 <tr class="header">

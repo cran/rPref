@@ -1,9 +1,9 @@
-## ---- echo = FALSE, message = FALSE-------------------------------------------
+## ----echo = FALSE, message = FALSE--------------------------------------------
 library(rPref)
 suppressPackageStartupMessages(library(dplyr))
 library(ggplot2)
 
-## ---- fig.width = 6, fig.height = 4-------------------------------------------
+## ----fig.width = 6, fig.height = 4--------------------------------------------
 sky <- psel(mtcars, high(mpg) * high(hp))
 
 ggplot(mtcars, aes(x = mpg, y = hp)) + geom_point(shape = 21) + 
@@ -13,11 +13,11 @@ ggplot(mtcars, aes(x = mpg, y = hp)) + geom_point(shape = 21) +
 p <- high(mpg) * high(hp)
 res <- psel(mtcars, p, top = nrow(mtcars))
 
-## ---- fig.width = 6, fig.height = 4-------------------------------------------
+## ----fig.width = 6, fig.height = 4--------------------------------------------
 ggplot(res, aes(x = mpg, y = hp, color = factor(.level))) +
   geom_point(size = 3) + geom_step(direction = "vh") 
 
-## ---- fig.width = 6, fig.height = 4-------------------------------------------
+## ----fig.width = 6, fig.height = 4--------------------------------------------
 res <- mtcars %>% psel(high(mpg) | high(hp), top = nrow(mtcars)) %>%
   arrange(mpg, -hp)
   
@@ -39,15 +39,15 @@ plot_btg(df, p)
 assoc.df(p) <- df
 init_pred_succ(p)
 
-## ---- collapse = TRUE---------------------------------------------------------
+## ----collapse = TRUE----------------------------------------------------------
 all_pred(p, 5)
 
-## ---- collapse = TRUE---------------------------------------------------------
+## ----collapse = TRUE----------------------------------------------------------
 hasse_pred(p, 5)
 
-## ---- collapse = TRUE---------------------------------------------------------
+## ----collapse = TRUE----------------------------------------------------------
 all_pred(p, c(5, 6))
 
-## ---- collapse = TRUE---------------------------------------------------------
+## ----collapse = TRUE----------------------------------------------------------
 all_pred(p, c(5, 6), intersect = TRUE)
 
